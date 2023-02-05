@@ -1,8 +1,8 @@
 # Python-for-finance
 
-The aim of this package is to cover and deliver functions to get/compute:
+The aim of this package is to cover different financial areas and use Python to:
 
- - The price/delta of an option using Black and Scholes
- - Option prices and greeks dataframe from an exchange (Deribit)
- - Implied volatility of a given option
+ - Test trading and hedging strategies 
+ - Perform advanced analysis on derivatives (equity options mainly)
+ - Get option prices and greeks dataframe from a crypto exchange (Deribit)
  - Reproduce the BDP/BDH Bloomberg Excel functions with Python
