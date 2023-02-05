@@ -8,7 +8,6 @@ from datetime import datetime
 import re
 import matplotlib.pyplot as plt
 
-
 def get_option_name_and_settlement(coin):
    
     # requests public API
@@ -102,4 +101,4 @@ def plot_graph(greek,option_name,seconds):
         plt.ylabel(f"{greek} value")
         time.sleep(1)
         i+=1
-
+# example plot_graph("vega","ETH-25NOV22-1200-C",3)
