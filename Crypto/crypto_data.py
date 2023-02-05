@@ -7,7 +7,7 @@ from matplotlib.animation import FuncAnimation
 
 import tensorflow as tf
 from tensorflow import keras
-
+from scipy.stats import linregress
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -17,19 +17,69 @@ import datetime
 import seaborn as sns
 
 %matplotlib notebook
-secret_pharse = "1VtQljl8VUHE8xROySBJmVW4vTA0l1eJPG7aWkgIaRT5xGmP443bP7H1tD6q09ci"
-API_key ="Ks7LSLAC0YVR5Nr5mNFlq5YuMPNWmvt4MCiGDg1R8YFHvDYv6fC2DbgyHqen4FTe"
+secret_pharse = "" # Put your secret phrase here
+API_key ="" # Put your API here
 
 client= Client(API_key,secret_pharse)
 
+###################### Trading Indicators ###############################
 
+def ichimoku(data):
+    nine_period_high = data['High'].rolling(window= 9).max()
+    nine_period_low = data['Low'].rolling(window= 9).min()
+    period26_high= data['High'].rolling(window= 26).max()
+    period26_low=data['Low'].rolling(window= 26).max()
+    period52_high= data['High'].rolling(window= 52).max()
+    period52_low=data['Low'].rolling(window= 52).max()
+    data["Tenkan"]= (nine_period_high + nine_period_low)/2
+    data["Kijun"]= (period26_high+period26_low)/2
+    data["Chikou"]=data["Close"].shift(-26)
+    data["Senkou_Span_A"] = ((data["Tenkan"] + data["Kijun"] )/2).shift(26)
+    data["Senkou_Span_B"] = ((period52_low + period52_high )/2).shift(26)
+    return data
 
+def RSI(data,nb_period):
+    data["Spread"] = data["Close"].diff()
+    ret = data["Spread"]
+    up = []
+    down = []
+    for i in range(len(ret)):
+        if ret[i] < 0:
+            up.append(0)
+            down.append(ret[i])
+        else:
+            up.append(ret[i])
+            down.append(0)
+    up_series = pd.Series(up)
+    down_series = pd.Series(down).abs()
+    up_ewm = up_series.ewm(com = nb_period - 1, adjust = False).mean()
+    down_ewm = down_series.ewm(com = nb_period - 1, adjust = False).mean()
+    rs = up_ewm/down_ewm
+    rsi = 100 - (100 / (1 + rs))
+    rsi = list(rsi)
+    data["RSI"] = rsi
+
+def ewm(data,nb_period):
+    data[f"ewm_{nb_period}"]=data["Close"].rolling(window=nb_period).mean()
+
+def bolinger(data,nb_period,nb_std):
+    ewm(data,nb_period)
+    sigma = data["Close"].rolling(nb_period, min_periods=nb_period).std()
+    data["U_bound"]= data[f"ewm_{nb_period}"] + (nb_std*sigma)
+    data["L_bound"]= data[f"ewm_{nb_period}"] - (nb_std*sigma)
+    
+def slope_angle(data,timeframe = 7):
+    data["Midprice"] = (data["High"] + data["Low"]) / 2
+    data[f"{timeframe}_days_candlestick_midpoint"] = data.Midprice.rolling(window = timeframe).mean()
+    data["slope"] = np.degrees(np.arctan(data[f"{timeframe}_days_candlestick_midpoint"]))
+
+###################### Functions to get the data ###############################
+    
 def price_token(pair):
     global df
     tickers = client.get_all_tickers()
-    df_tickers =pd.DataFrame(tickers)
+    df_tickers = pd.DataFrame(tickers)
     df_tickers.set_index("symbol",inplace=True)
-
     df=df_tickers.loc[str(pair)].iloc[0]
     return float(df)
 
@@ -65,7 +115,6 @@ def get_stocks_data(start,end):
     nasdaq = nasdaq.rename(columns={'^IXIC':"Close_Nasdaq"})
     nasdaq=nasdaq.iloc[:,0]
     
-    
 def get_historical_data(pair,start_date,log_returns=False):
     global df_historical_data
     historical_data = client.get_historical_klines(str(pair),Client.KLINE_INTERVAL_1DAY,str(start_date))
@@ -74,16 +123,14 @@ def get_historical_data(pair,start_date,log_returns=False):
                     'Number of Trades', 'TB Base Volume', 'TB Quote Volume', 'Ignore']
     df_historical_data['Open Time'] = pd.to_datetime(df_historical_data['Open Time']/1000, unit='s')
     df_historical_data['Close Time'] = pd.to_datetime(df_historical_data['Close Time']/1000, unit='s')
-    numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume', 'Quote Asset Volume', 'TB Base Volume', 'TB Quote Volume']
+    df_historical_data = df_historical_data[['Open Time', 'Open', 'High', 'Low', 'Close', 'Volume', 'Number of Trades']]
+    numeric_columns = ['Open', 'High', 'Low', 'Close', 'Volume', 'Number of Trades']
     df_historical_data[numeric_columns]=df_historical_data[numeric_columns].apply(pd.to_numeric, axis=1)
     df_historical_data.set_index("Open Time", inplace =True)
-    
     if log_returns == True:
         df_historical_data["Simple_returns"] = df_historical_data["Close"].pct_change()
         df_historical_data["log_returns"] = [np.log(rt +1) for rt in  df_historical_data["Simple_returns"]]
-          
-        
-        
+                
     
 Tickers=["XTZUSDT","XRPUSDT","BNBUSDT","ETHUSDT","XMRUSDT","LTCUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","AVAXUSDT","MATICUSDT","LINKUSDT","BTCUSDT","VETUSDT","KSMUSDT"] 
 
@@ -108,5 +155,4 @@ def parse_na_values(df_column):
     for i in range(len(df_column)):
         if np.isnan(df_column[i]):
             df_column[i]=df_column[i-1]
-
                        
