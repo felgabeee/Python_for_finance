@@ -88,7 +88,7 @@ def get_greeks_data(greek,option_name):
     result = result['result']["greeks"][f"{greek}"]
     return result
  
-# Plot live option greeks movments
+# Plot live option greeks movements
 def plot_graph(greek,option_name,seconds):
     fig=plt.figure(figsize=(12,8))
     i=0
