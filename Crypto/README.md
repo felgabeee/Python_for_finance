@@ -22,7 +22,7 @@ The second part of the module is dedicated to create trading indicators:
 
 # Crypto_options.py
 
-This module creates a dataframe with real options data from the crypto exchange Derebit and produces the given dataframe outuput:
+This module creates a dataframe with real options data from the crypto exchange Deribit and produces the given dataframe outuput:
 
 
 ![alt text](https://github.com/felgabeee/Python_for_finance/blob/main/Images/df_crypto_options.PNG)
