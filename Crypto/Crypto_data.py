@@ -132,7 +132,7 @@ def get_historical_data(pair,start_date,log_returns=False):
         df_historical_data["log_returns"] = [np.log(rt +1) for rt in  df_historical_data["Simple_returns"]]
                 
     
-Tickers=["XTZUSDT","XRPUSDT","BNBUSDT","ETHUSDT","XMRUSDT","LTCUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","AVAXUSDT","MATICUSDT","LINKUSDT","BTCUSDT","VETUSDT","KSMUSDT"] 
+# Example of multiple tickers Tickers=["XTZUSDT","XRPUSDT","BNBUSDT","ETHUSDT","XMRUSDT","LTCUSDT","ADAUSDT","DOGEUSDT","DOTUSDT","AVAXUSDT","MATICUSDT","LINKUSDT","BTCUSDT","VETUSDT","KSMUSDT"] 
 
 def multiple_historical_data(Tickers,start_date):
     global data
